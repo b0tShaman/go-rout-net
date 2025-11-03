@@ -22,7 +22,7 @@ This project is primarily an educational experiment to explore how Go's concurre
 
 1.  Clone the repository:
     ```bash
-    git clone [https://github.com/YOUR_USERNAME/go-concurrent-nn.git](https://github.com/YOUR_USERNAME/go-concurrent-nn.git)
+    git clone https://github.com/vishalvp-109989/go-concurrent-nn.git
     cd go-concurrent-nn
     go mod tidy
     ```
