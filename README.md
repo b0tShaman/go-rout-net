@@ -1,6 +1,6 @@
 # A Concurrent Neural Network in Go
 
-A basic, from-scratch implementation of a **feed-forward neural network** written in Go, which leverages **Goroutines and channels** to achieve a concurrent and asynchronous execution model for both the feed-forward and backpropagation passes.
+A from-scratch, fully concurrent neural network simulator in Go — each neuron runs two goroutines (one for feedforward, one for backprop) and communicates via channels, mimicking asynchronous biological signalling.
 
 This project is primarily an educational experiment to explore how Go's concurrency primitives can be used to model the parallel nature of a neural network's architecture.
 
