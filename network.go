@@ -65,7 +65,7 @@ func NewNetwork(defs ...DenseDef) *Network {
 	// For every Dense def except the first (input spec),
 	// create a regular Layer (including the last Dense def).
 	for i := range len(defs) - 1 {
-		l := NewLayer(prevErrs, prevIns, defs[i+1].Neurons, defs[i+1].Activation, defs[i+1].Gradient)
+		l := NewLayer(prevErrs, prevIns, defs[i+1])
 		hidden = append(hidden, l)
 
 		// advance the prevs to this layer's outputs for the next iteration
@@ -74,7 +74,8 @@ func NewNetwork(defs ...DenseDef) *Network {
 	}
 
 	// Last layer.
-	l := NewLayer(prevErrs, prevIns, 1, defs[len(defs)-1].Activation, defs[len(defs)-1].Gradient)
+	def := DenseDef{Neurons: 1, Activation: defs[len(defs)-1].Activation, Gradient: defs[len(defs)-1].Gradient, Initializer: defs[len(defs)-1].Initializer}
+	l := NewLayer(prevErrs, prevIns, def)
 	hidden = append(hidden, l)
 
 	return &Network{
@@ -212,14 +213,20 @@ func (nw *Network) WaitForBackpropFinish() {
 }
 
 func (nw *Network) Train(X [][]float64, Y []float64, cfg TrainingConfig) {
-	nw.UpdateLR(cfg)
-	batchSize = cfg.BatchSize
+	log.Printf("Train: %+v", cfg)
+	nw.UpdateNeuronCfg(cfg)
 
 	start := time.Now()
+	dataSize := len(X)
+
+	limit := (dataSize / cfg.BatchSize) * cfg.BatchSize
+	log.Printf("Dropped %d samples", dataSize-limit)
+
 	for epoch := range cfg.Epochs {
 		totalLoss := 0.0
 		correct := 0
-		for i := range Y[1:] {
+		X, Y = Shuffle(X, Y)
+		for i := range limit {
 			x := X[i]
 			target := Y[i]
 
@@ -242,8 +249,8 @@ func (nw *Network) Train(X [][]float64, Y []float64, cfg TrainingConfig) {
 		}
 		// Logging
 		if epoch%cfg.VerboseEvery == 0 {
-			avgLoss := totalLoss / float64(len(Y[1:]))
-			acc := float64(correct) / float64(len(Y[1:])) * 100.0
+			avgLoss := totalLoss / float64(dataSize)
+			acc := float64(correct) / float64(dataSize) * 100.0
 			elapsed := time.Since(start).Minutes()
 			log.Printf("Epoch %d | Loss: %.6f | Accuracy: %.2f%% | Time: %.2f min\n", epoch, avgLoss, acc, elapsed)
 
@@ -290,8 +297,9 @@ func (nw *Network) Predict(x []float64, cfg TrainingConfig) float64 {
 func (nw *Network) Evaluate(X [][]float64, Y []float64, cfg TrainingConfig) (float64, float64) {
 	totalLoss := 0.0
 	correct := 0
+	dataSize := len(X)
 
-	for i := range Y[1:] {
+	for i := range X {
 		x := X[i]
 		target := Y[i]
 
@@ -308,8 +316,8 @@ func (nw *Network) Evaluate(X [][]float64, Y []float64, cfg TrainingConfig) (flo
 			correct++
 		}
 	}
-	avgLoss := totalLoss / float64(len(Y[1:]))
-	acc := float64(correct) / float64(len(Y[1:])) * 100.0
+	avgLoss := totalLoss / float64(dataSize)
+	acc := float64(correct) / float64(dataSize) * 100.0
 	return avgLoss, acc
 }
 
@@ -392,10 +400,17 @@ func (nw *Network) isCorrect(predVector []float64, targetScalar float64, cfg Tra
 	return false
 }
 
-func (nw *Network) UpdateLR(cfg TrainingConfig) {
+func (nw *Network) UpdateNeuronCfg(cfg TrainingConfig) {
 	for _, layer := range nw.Hidden {
 		for _, neuron := range layer.Neurons {
-			neuron.LR = cfg.LearningRate
+			ack := make(chan struct{})
+			// Send with Ack channel
+			neuron.ConfigUpdate <- NeuronCfg{
+				LR:        cfg.LearningRate,
+				BatchSize: cfg.BatchSize,
+				Ack:       ack,
+			}
+			<-ack
 		}
 	}
 }

@@ -18,6 +18,24 @@ type DenseDef struct {
 	Activation   ActivationFunc
 	Gradient     ActivationFunc
 	HasInputSpec bool
+	Initializer  InitializerFunc
+}
+
+func Dense(neurons int, options ...DenseOption) DenseDef {
+	d := DenseDef{
+		Neurons:      neurons,
+		Activation:   linear,   // Default activation
+		Gradient:     dfLinear, // Default derivative
+		HasInputSpec: false,
+		Initializer:  Random,
+	}
+
+	// Apply all functional options
+	for _, opt := range options {
+		opt(&d)
+	}
+
+	return d
 }
 
 func Activation(name string) DenseOption {
@@ -32,20 +50,24 @@ func Activation(name string) DenseOption {
 	}
 }
 
-func Dense(neurons int, options ...DenseOption) DenseDef {
-	d := DenseDef{
-		Neurons:      neurons,
-		Activation:   linear,   // Default activation
-		Gradient:     dfLinear, // Default derivative
-		HasInputSpec: false,
+func Initializer(name string) DenseOption {
+	var weightsInitializer InitializerFunc
+	switch name {
+	case "xavier":
+		weightsInitializer = XavierInit
+	case "xavier_normal":
+		weightsInitializer = XavierNormal
+	case "he":
+		weightsInitializer = HeNormal
+	case "he_uniform":
+		weightsInitializer = HeUniform
+	default:
+		panic(fmt.Sprintf("Missing initializer function for: %s", name))
 	}
 
-	// Apply all functional options
-	for _, opt := range options {
-		opt(&d)
+	return func(d *DenseDef) {
+		d.Initializer = weightsInitializer
 	}
-
-	return d
 }
 
 func InputDim(dim int) DenseOption {
@@ -78,8 +100,12 @@ func NewInputLayer(m, n int) *Layer {
 	}
 }
 
-func NewLayer(errsToPrev, outsFromPrev [][]chan float64, outputNeurons int, f, df ActivationFunc) *Layer {
+func NewLayer(errsToPrev, outsFromPrev [][]chan float64, def DenseDef) *Layer {
 	numNeurons := len(outsFromPrev)
+	outputNeurons := def.Neurons
+	f := def.Activation
+	df := def.Gradient
+	weightsInit := def.Initializer
 
 	layer := &Layer{
 		Neurons:      make([]*Neuron, numNeurons),
@@ -88,7 +114,7 @@ func NewLayer(errsToPrev, outsFromPrev [][]chan float64, outputNeurons int, f, d
 	}
 
 	// 1. Initialize each Neuron in the layer
-	for j := 0; j < numNeurons; j++ {
+	for j := range numNeurons {
 		errsFromNext := make([]chan float64, outputNeurons)
 		insToNext := make([]chan float64, outputNeurons)
 
@@ -96,7 +122,7 @@ func NewLayer(errsToPrev, outsFromPrev [][]chan float64, outputNeurons int, f, d
 			errsFromNext[i] = make(chan float64, channelCapacity)
 			insToNext[i] = make(chan float64, channelCapacity)
 		}
-		layer.Neurons[j] = NewNeuron(errsToPrev[j], outsFromPrev[j], errsFromNext, insToNext, f, df)
+		layer.Neurons[j] = NewNeuron(errsToPrev[j], outsFromPrev[j], errsFromNext, insToNext, f, df, weightsInit)
 		layer.ErrsFromNext[j] = errsFromNext
 		layer.InsToNext[j] = insToNext
 	}

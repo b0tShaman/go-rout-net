@@ -2,29 +2,29 @@ package main
 
 import (
 	"log"
-	"math/rand"
 	"os"
 	"os/signal"
 	"syscall"
 )
 
 func main() {
-	X, Y, err := LoadCSV("data.csv")
+	X, Y, err := LoadCSV("mnist_train.csv")
 	if err != nil {
 		log.Println("Error:", err)
 		return
 	}
+	MinMaxNormalize(X)
 
 	inputDim := len(X[0])
-	numSamples := len(X[1:])
+	numSamples := len(X)
 
 	log.Printf("Loaded dataset: %d samples, %d input features\n", numSamples, inputDim)
 
 	nw := NewNetwork(
-		Dense(16, InputDim(inputDim), Activation("relu")),
-		Dense(8, Activation("relu")),
-		Dense(4, Activation("relu")),
-		Dense(2),
+		Dense(64, InputDim(inputDim), Activation("relu"), Initializer("he")),
+		Dense(32, Activation("relu")),
+		Dense(16, Activation("relu")),
+		Dense(10),
 	)
 
 	// Try to load previous weights if file exists
@@ -48,27 +48,37 @@ func main() {
 	}()
 
 	cfg := TrainingConfig{
-		Epochs:       100,
+		Epochs:       10,
 		BatchSize:    1,
-		LearningRate: 0.001,
+		LearningRate: 0.01,
 		LossFunction: CATEGORICAL_CROSS_ENTROPY,
-		KClasses:     2, // For CATEGORICAL_CROSS_ENTROPY (Softmax Output).
-		VerboseEvery: 10,
+		KClasses:     10, // For CATEGORICAL_CROSS_ENTROPY (Softmax Output).
+		VerboseEvery: 1,
 	}
 
+	// Train
 	nw.Train(X, Y, cfg)
 
+	// Evaluate
+	X, Y, err = LoadCSV("mnist_test.csv")
+	if err != nil {
+		log.Println("Error:", err)
+		return
+	}
+	MinMaxNormalize(X)
 	loss, acc := nw.Evaluate(X, Y, cfg)
 	log.Printf("Final Evaluation: Loss=%.6f, Accuracy=%.2f%%", loss, acc)
 
-	// Test prediction
-	// Pick random test data from training set
-	rand := rand.Intn(len(X))
-	test := X[rand]
-
+	// Predict
+	test, err := convertJpg1D("predict.jpg")
+	if err != nil {
+		panic("convertJpg1D failed")
+	}
+	NormalizeSampleMinMax(test)
 	pred := nw.Predict(test, cfg)
-	log.Printf("Test Input: %v | Predicted Output: %.4f | Actual Output: %.4f\n", test, pred, Y[rand])
+	log.Printf("Predicted Output: %.4f | Actual Output: %.4f\n", pred, 5.0)
 
+	// Save weights
 	if err := nw.SaveWeights("weights.json"); err != nil {
 		log.Println("Error saving weights:", err)
 	} else {
