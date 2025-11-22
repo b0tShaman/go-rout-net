@@ -1,8 +1,8 @@
 package main
 
 import (
-	. "go_rout_net/data"
-	. "go_rout_net/ml"
+	. "github.com/b0tShaman/go-rout-net/data"
+	. "github.com/b0tShaman/go-rout-net/ml"
 	"log"
 	"os"
 	"os/signal"
