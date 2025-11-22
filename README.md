@@ -5,6 +5,8 @@ A from-scratch, fully concurrent neural network simulator in Go — each neuron 
 This project is an educational exploration of how Go's concurrency primitives can model the parallel, asynchronous behavior of biological neural networks.
 
 ---
+Autoregressive text generation
+
 ![Demo](assets/demo.gif)
 ## 🚀 Features
 
