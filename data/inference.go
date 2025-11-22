@@ -3,7 +3,7 @@ package data
 import (
 	"bufio"
 	"fmt"
-	. "go_rout_net/ml"
+	. "github.com/b0tShaman/go-rout-net/ml"
 	"log"
 	"math/rand"
 	"os"
