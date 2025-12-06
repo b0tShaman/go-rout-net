@@ -8,6 +8,10 @@ This project is an educational exploration of how Go's concurrency primitives ca
 Autoregressive text generation
 
 ![Demo](assets/demo.gif)
+---
+Neural network Architecture
+
+![Demo](assets/architecture.jpg)
 ## 🚀 Features
 
 * **Concurrent Architecture:** Each neuron runs **two goroutines** — one for feedforward and another for backpropagating errors — communicating with other neurons (and layers) using Go channels for inputs, outputs, and error signals.
