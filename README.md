@@ -81,7 +81,8 @@ Used for continuous value prediction tasks (e.g., predicting a number).
 
 ```go
 nw := NewNetwork(
-    Dense(16, InputDim(inputDim), Activation("relu")),
+    Input(inputDim),
+    Dense(16, Activation("relu")),
     Dense(8, Activation("relu")),
     Dense(4, Activation("relu")),
     Dense(1), // Single output neuron, linear is the default activation
@@ -104,7 +105,8 @@ Used when predicting **multiple classes** (e.g., softmax output).
 
 ```go
 nw := NewNetwork(
-    Dense(16, InputDim(inputDim), Activation("relu")),
+    Input(inputDim),
+    Dense(16, Activation("relu")),
     Dense(8, Activation("relu")),
     Dense(4, Activation("relu")),
     Dense(3), // Number of output classes
@@ -130,7 +132,8 @@ Used for **two-class** problems (e.g., predicting 0 or 1).
 
 ```go
 nw := NewNetwork(
-    Dense(16, InputDim(inputDim), Activation("relu")),
+    Input(inputDim),
+    Dense(16, Activation("relu")),
     Dense(8, Activation("relu")),
     Dense(4, Activation("relu")),
     Dense(1), // Single neuron for binary probability
