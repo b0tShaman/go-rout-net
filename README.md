@@ -26,6 +26,17 @@ Neural network Architecture
 
 ---
 
+## ⚠️ Performance & Experimental Use Cases
+
+It is important to note that mapping every neuron to a goroutine introduces significant **context switching and channel synchronization overhead**. As a result, this architecture is considerably slower for standard dense network training compared to traditional matrix-multiplication engines (like PyTorch or TensorFlow).
+
+ However, this is a good playground for experimenting with architectures where asynchronous behavior is beneficial, specifically:
+* **Spiking Neural Networks (SNNs):** Where timing and distinct firing events matter more than batch processing.
+* **Sparse Neural Networks:** Where only a fraction of neurons are active, mitigating the overhead.
+* **Dynamic Topology:** Evolving networks where neurons are added or removed at runtime without restructuring global matrices.
+
+---
+
 ## 🧰 Getting Started
 
 ### Prerequisites
