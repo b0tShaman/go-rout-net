@@ -48,7 +48,7 @@ It is important to note that mapping every neuron to a goroutine introduces sign
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/vishalvp-109989/go-rout-net.git
+   git clone https://github.com/b0tShaman/go-rout-net.git
    cd go-rout-net
    go mod tidy
    ```
