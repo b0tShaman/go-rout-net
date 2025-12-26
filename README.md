@@ -1,6 +1,6 @@
 # Concurrent Neural Network SDK in Go
 
-A from-scratch, fully concurrent neural network simulator in Go — each neuron runs a goroutine and communicates via channels, mimicking asynchronous biological signalling.
+A from-scratch, fully concurrent neural network simulator in Go - each neuron runs a goroutine and communicates via channels, mimicking asynchronous biological signalling.
 
 This project is an educational exploration of how Go's concurrency primitives can model the parallel, asynchronous behavior of biological neural networks.
 
@@ -14,7 +14,7 @@ Neural network Architecture
 ![Demo](assets/architecture.jpg)
 ## 🚀 Features
 
-* **Concurrent Architecture:** Each neuron runs a single goroutine and communicates through four dedicated channels — receiving inputs from the previous layer, sending outputs forward, receiving errors from the next layer, and sending errors backward.
+* **Concurrent Architecture:** Each neuron runs a single goroutine and communicates through four dedicated channels - receiving inputs from the previous layer, sending outputs forward, receiving errors from the next layer, and sending errors backward.
 * **Backpropagation:** Implements the standard backpropagation algorithm for training, fully utilizing the channel-based architecture.
 * **Weight Persistence:** Includes functionality to save and load trained weights using a JSON file (weights.json).
 * **Data Handling:** Provides a utility function (`LoadCSV`) for loading training data from a CSV, including automatic handling and **one-hot encoding** of categorical features.
